@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirusxcoder/todo-app/todo"
+	"github.com/sirusxcoder/todo-app"
 )
 
 const (
