@@ -15,6 +15,6 @@ func main() {
 
 flag.Parse()
 
-todos  &todo.Todos{}
+todos := &todo.Todos{}
 
-if err != todo.
+if err != todos
