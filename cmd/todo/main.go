@@ -2,7 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.comm/sirusxcoder/todo-app"
+	"fmt"
+	"os"
+
+	"github.com/sirusxcoder/todo-app/todo"
 )
 
 const (
@@ -10,11 +13,30 @@ const (
 )
 
 func main() {
-	add := flag.Bool(name:"add", value: false, usage:"add a new todo")
+	// Corrected: flag.Bool(name:"add", value: false, usage:"add a new todo") -> flag.Bool("add", false, "add a new todo")
+	add := flag.Bool("add", false, "add a new todo")
+
+	flag.Parse()
+
+	todos := &todo.Todos{}
+
+	if err := todos.Load(todoFile); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+
+	switch {
+	case *add:
+		todos.Add("Sample Todo")     // Removed incorrect syntax: task:
+		err := todos.Store(todoFile) // Declare err properly here
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+	default:
+		// Corrected: fmt.Fprintln(os.Stdout, a...:"invalid command") -> fmt.Fprintln(os.Stdout, "invalid command")
+		fmt.Fprintln(os.Stdout, "invalid command")
+		os.Exit(0)
+	}
 }
-
-flag.Parse()
-
-todos := &todo.Todos{}
-
-if err != todos
