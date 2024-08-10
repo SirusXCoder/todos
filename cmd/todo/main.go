@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"github.com/sirusxcoder/todo-app"
 )
@@ -14,7 +18,17 @@ const (
 
 func main() {
 	// Corrected: flag.Bool(name:"add", value: false, usage:"add a new todo") -> flag.Bool("add", false, "add a new todo")
+	//
+
 	add := flag.Bool("add", false, "add a new todo")
+
+	// task := flag.String("task", "", "the task to add")
+
+	complete := flag.Int("complete", 0, "Mark a todo as completed")
+
+	del := flag.Int("del", 0, "Deletes a todo")
+
+	list := flag.Bool("list", false, "List all todos")
 
 	flag.Parse()
 
@@ -27,16 +41,76 @@ func main() {
 
 	switch {
 	case *add:
-		todos.Add("Sample Todo")     // Removed incorrect syntax: task:
-		err := todos.Store(todoFile) // Declare err properly here
+
+		task, err := getInput(os.Stdin, flag.Args()...)
+
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
+		// if *task == "" {
+		// 	fmt.Fprintln(os.Stderr, "Please provide a task using the -task flag.")
+		// 	os.Exit(1)
+		// }
+
+		todos.Add(task)
+
+		err = todos.Store(todoFile) // Declare err properly here
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+	case *complete > 0:
+		err := todos.Complete(*complete)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		err = todos.Store(todoFile) // Declare err properly here
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+	case *del > 0:
+		err := todos.Delete(*del)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		err = todos.Store(todoFile) // Declare err properly here
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+	case *list:
+		todos.Print()
 
 	default:
 		// Corrected: fmt.Fprintln(os.Stdout, a...:"invalid command") -> fmt.Fprintln(os.Stdout, "invalid command")
 		fmt.Fprintln(os.Stdout, "invalid command")
 		os.Exit(0)
 	}
+}
+
+func getInput(r io.Reader, args ...string) (string, error) {
+	if len(args) > 0 {
+		return strings.Join(args, " "), nil
+	}
+	scanner := bufio.NewScanner(r)
+	scanner.Scan()
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	text := scanner.Text()
+
+	if len(text) == 0 {
+		return "", errors.New(`empty todo is not allowed`)
+	}
+	return text, nil
 }
